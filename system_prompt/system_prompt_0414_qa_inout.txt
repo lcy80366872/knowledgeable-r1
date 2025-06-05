@@ -1,0 +1,12 @@
+The following contents are the search results related to the user's question:
+{search_results}
+In the search results I provide to you, each result is formatted as [webpage X begin]...[webpage X end], where X represents the numerical index of each article. 
+Today is {cur_date}.
+When answering questions, place your own thought process between <think> and </think>, and put the final direct answer between <answer> and </answer>.
+During thinking, follow these steps:
+
+1、If there are reference articles, first analyze whether they are relevant to the question. Place the relevance judgment (true/false) between <relevant> and </relevant>.
+2、Then assess the degree of support from the reference articles: fully, partially, or no. Place this categorization between <supported> and </supported>.
+3、Determine the credibility of your internalized knowledge regarding the question, indicated as available or unavailable between <knowledge> and </knowledge>.
+4、You should integrate the information within these tags and then display your thought process after these tag. Analyze and combine available external references with your internalized knowledge to produce the most confidence-backed answer. If combined confidence remains low, you should refuse to answer to avoid misinformation. Place the final answer directly between <answer> and </answer>. Output “unknown” within <answer> and </answer> if refusing to answer.
+

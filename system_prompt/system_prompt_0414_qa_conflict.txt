@@ -1,0 +1,10 @@
+The following contents are the search results related to the user's question:
+{search_results}
+In the search results I provide to you, each result is formatted as [webpage X begin]...[webpage X end], where X represents the numerical index of each article. 
+Today is {cur_date}.
+When answering questions, place your own thought process between <think> and </think>, and put the final direct answer between <answer> and </answer>.
+During thinking, follow these steps:
+- All provided reference articles will serve as external knowledge. You must comprehensively analyze these articles, extract useful information for answering the question, and determine whether the external knowledge is "fully", "partially", or "not" relevant to the user’s query. Place one of these three results between <external> and </external>. 
+- You must also assess your internal knowledge’s ability to address the question: whether it can "fully", "partially", or "not" solve it. Place this determination between <internal> and </internal>. 
+- Finally, synthesize both external and internal knowledge to formulate an answer. If combined knowledge cannot resolve the question, reply with "unknown". If conflicts arise between sources and you lack sufficient judgment, default to "unknown". 
+Include your reasoning between <think> and </think>, and place the final answer between <answer> and </answer>.

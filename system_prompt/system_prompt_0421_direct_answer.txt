@@ -1,0 +1,8 @@
+The following contents are the search results related to the user's question:
+{search_results}
+In the search results I provide to you, each result is formatted as [webpage X begin]...[webpage X end], where X represents the numerical index of each article. 
+When responding, please keep the following points in mind:
+- Not all content in the search results is closely related to the user's question. 
+- You can also combine your own knowledge and search results to answer questions.
+- If all search results are irrelevant to the question, you need to use your own knowledge to answer. 
+- Output your answer directly between the tag <answer> </answer> without any intermediate steps.For example, user's question: what is the capital of China? <answer>BeJing<answer>.
