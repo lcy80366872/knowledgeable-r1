@@ -1,7 +1,7 @@
 <div align="center">
 
 # Knowledgeable-r1: Policy Optimization for Knowledge Exploration in Retrieval-Augmented Generation
-[![Paper](https://img.shields.io/badge/paper-A42C25?style=for-the-badge&logo=arxiv&logoColor=white)](https://arxiv.org/pdf/2504.13055) 
+[![Paper](https://img.shields.io/badge/paper-A42C25?style=for-the-badge&logo=arxiv&logoColor=white)](https://arxiv.org/abs/2506.05154) 
 
 </div>
 
@@ -48,14 +48,14 @@ CUDA_VISIBLE_DEVICES=1,2,3,4,5,6 deepspeed grpo_program.py
 ## Citation
 If you find our works useful for your research, please consider citing:
 ```bibtex
-@misc{,
+@misc{lin2025knowledgeabler1policyoptimizationknowledge,
       title={Knowledgeable-r1: Policy Optimization for Knowledge Exploration in Retrieval-Augmented Generation}, 
-      author={},
+      author={Chenyu Lin and Yilin Wen and Du Su and Fei Sun and Muhan Chen and Chenfu Bao and Zhonghou Lv},
       year={2025},
-      eprint={},
+      eprint={2506.05154},
       archivePrefix={arXiv},
-      primaryClass={cs.CV},
-      url={ }, 
+      primaryClass={cs.CL},
+      url={https://arxiv.org/abs/2506.05154}, 
 }
 ```
 
