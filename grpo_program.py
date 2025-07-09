@@ -24,7 +24,7 @@ from datetime import datetime
 os.environ['TOKENIZERS_PARALLELISM'] = 'true'
 os.environ["NCCL_P2P_DISABLE"]="1"
 
-
+NUMS=500  #we use 500 sample for all training dataset
 wandb_name = train_config['wandb_name']
 wandb_project = train_config['wandb_project']
 wandb_key = train_config['wandb_key']
@@ -245,7 +245,7 @@ def gen_worker(Q, physics_device):
 
     
     data_path = train_config['data_path']   
-    QAs =  dataset_process(data_path,search_results)
+    QAs =  dataset_process(data_path,search_results)[:NUMS]
     print("QAs", len(QAs))
     system_prompt=[]
     for prompt_path in prompt_paths:
