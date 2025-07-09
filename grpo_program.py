@@ -73,6 +73,9 @@ elif dataset_name == 'choice':
 elif dataset_name == 'conflictqa':
     dataset_process= conflict
     reward_acc =exact_match_score
+elif dataset_name == 'conflictqa_mix':
+    dataset_process= conflict_mix
+    reward_acc =exact_match_score
 else:
     raise NotImplementedError
 def get_batch():
