@@ -41,7 +41,7 @@ if __name__ == '__main__':
     #                enforce_eager=True,          # 对于小模型可以加速
     #             enable_prefix_caching= True,)
     ref_model = AutoModelForCausalLM.from_pretrained(model_path,
-            torch_dtype=torch.bfloat16, _attn_implementation="flash_attention_2").to('cuda') #"flash_attention_2"
+            torch_dtype=torch.bfloat16, _attn_implementation="fsdp").to('cuda') #"flash_attention_2"
     ref_model.eval()
     ref_model.requires_grad_(False)
 
