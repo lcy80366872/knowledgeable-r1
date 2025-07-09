@@ -312,10 +312,8 @@ def gen_worker(Q, physics_device):
         for x in inputs:
             for i in range(len(system_prompt)):
                 for n in range(num_pre_Q//len(system_prompt) ):
-                
                     prompt = system_prompt[i]
                     search = x['P']
-                    
                     if i==0:
                         augments.append(0)
                     else:
@@ -328,17 +326,14 @@ def gen_worker(Q, physics_device):
                     tip_text.append(tokenizer.apply_chat_template([
                         {"role": "system", "content": dynamic_system_prompt},
                         {"role": "user", "content": x['Q']}], tokenize=False, add_generation_prompt=True))
-        #answers = get_completions(tip_text,0)
         outputs = vllm_gen.generate(tip_text, sampling_params, use_tqdm=False)
         answers = [output.outputs[0].text for output in outputs]
         return tip_text,answers,augments
-
     def reward_format(answer):
         pattern = r"^<think>.*?</think>[\n ]<answer>.*?</answer>$"
         think_count = answer.count("<think>") + answer.count("</think>")
         answer_count = answer.count("<answer>") + answer.count("</answer>")
         reward = 1 if re.match(pattern, answer, re.DOTALL | re.VERBOSE) and think_count == 2 and answer_count == 2 else 0
-        
         return reward
     def parse_answer(text: str) -> str:
         match = re.search(r'.*<answer>(.*?)</answer>', text, re.DOTALL)
@@ -350,42 +345,32 @@ def gen_worker(Q, physics_device):
         return (python_cnt - error_cnt) * 0.1
 
     def gen_samples(inputs,step):
-        # prompts = [x["Q"] for x in inputs]
-        prompts,answers,if_augments = gen_answers(inputs,step)
-        
+        prompts,answers,if_augments = gen_answers(inputs,step)   
         rewards = []
         scores = []
         record_gen= []
         acc_scores= []
         f1_scores = []
         format_scores =[]
-        # if_augments=[]
         for i, inp in enumerate(inputs):
             pre_Q_correct_acc = 0
             pre_Q_correct_format = 0
-            
             for idx,a in enumerate(answers[i*num_pre_Q:(i+1)*num_pre_Q]):
                 format_score = reward_format(a)
                 a =parse_answer(a)
                 acc_score = reward_acc( a,inp["A"])
-                if dataset_name == 'conflictqa':
+                if dataset_name == 'conflictqa' or 'conflictqa_mix':
                     f1_score=0
                 else:
                     f1_score = cau_f1_score( a,inp["A"])
-       
-                #call_python_score = call_python(a)
                 acc_scores.append(acc_score)
                 f1_scores.append(f1_score)
                 format_scores.append(format_score)
- 
                 rewards.append(acc_score + format_score+f1_score)
                 record_gen.append({"question": inp, "answer": a, "acc_score":acc_score, "format_score": format_score,"f1_score": f1_score})
-                
                 if acc_score>0: pre_Q_correct_acc += 1
                 if format_score>0: pre_Q_correct_format +=1
             scores.append((pre_Q_correct_acc, pre_Q_correct_format))
-        
-        #record the generation data the score
         if os.path.exists(gen_data_path) and os.path.getsize(gen_data_path) > 0:
             with open(gen_data_path, 'r') as f:
                 try:
@@ -399,44 +384,30 @@ def gen_worker(Q, physics_device):
             json.dump(gen_data, file, indent=4)
         prompts_text=[]
         for x in inputs:
-
             search =x['P']
-            # current_date = datetime.now().strftime("%Y-%m-%d")
             dynamic_system_prompt = system_prompt[0].format(
                 search_results=search,
-                # cur_date=current_date
             )
             prompts_text.append(tokenizer.apply_chat_template([
                     {"role": "system", "content": dynamic_system_prompt},
                     {"role": "user", "content": x['Q']}], tokenize=False, add_generation_prompt=True) )
-        
         return prompts_text,prompts, torch.tensor(rewards, dtype=torch.float32), answers, torch.tensor(acc_scores, dtype=torch.float32),torch.tensor(f1_scores, dtype=torch.float32), torch.tensor(format_scores, dtype=torch.float32), torch.tensor(scores, dtype=torch.float32),torch.tensor(if_augments, dtype=torch.float32)
-
     def try_update_model():
         try:
-            
             update_data = Q.get_nowait()  
             current_step = update_data["step"]
             new_state_dict = update_data["weights"]
-            
             print(f'[VLLM PROC] receive (step={current_step}) ...')
             llm_model = vllm_gen.llm_engine.model_executor.driver_worker.model_runner.model
             llm_model.load_weights(new_state_dict.items())
             print(f'[VLLM PROC] update to step {current_step}')
-            
-            del new_state_dict  # 释放内存
+            del new_state_dict  
             return  current_step
-
         except Exception as e:
-            
             return
-        
-        
     from torch.nn.utils.rnn import pad_sequence
-
     fout = open(f'{record_path}', 'w')
     for it in range(9999999999):
-      
         if it==0:
             start = 0
         else:
@@ -449,7 +420,6 @@ def gen_worker(Q, physics_device):
             print("!!SEND the ",j ,"sample")
             if j % 2 == 0: 
                 cur_step1=try_update_model()
-            
             cur_step = cur_step1 if cur_step1 is not None else cur_step
             ori_prompt_inputs,prompt_inputs, rewards, answers, acc_scores,f1_scores, format_scores, scores, is_aguments = gen_samples(inputs,cur_step)
             fout.write(str(scores) + '\n')
@@ -472,16 +442,12 @@ def gen_worker(Q, physics_device):
                 curr_f1_scores = f1_scores[i*num_pre_Q:(i+1)*num_pre_Q]
                 curr_format_scores = format_scores[i*num_pre_Q:(i+1)*num_pre_Q]
                 curr_is_aguments = is_aguments[i*num_pre_Q:(i+1)*num_pre_Q]
-                # pdb.set_trace()
-
                 if curr_rewards.max() - curr_rewards.min() < 1e-4:
                     print("abandon batch")
                     continue
-
                 if ref_server_ver == 'tensor':
                     unique_args = curr_is_aguments.unique()
                     normed_rewards = torch.empty_like(curr_rewards)
-
                     for arg in unique_args:
                         mask = (curr_is_aguments == arg)             # 当前组的布尔索引
                         group_rewards = curr_rewards[mask]           # 取出当前组的reward
@@ -491,7 +457,6 @@ def gen_worker(Q, physics_device):
                         normed_rewards[mask] = (group_rewards - mean) / (std + 1e-4)
                     curr_rewards = (curr_rewards - curr_rewards.mean())/ (curr_rewards.std() + 1e-4)
                     for ii in range(0, num_pre_Q, train_batch_size):
-                        
                         sub_rewards = curr_rewards[ii:ii+train_batch_size]
                         sub_ans_ids = curr_ans_ids[ii:ii+train_batch_size]
                         sub_acc_scores = curr_acc_scores[ii:ii+train_batch_size]
@@ -502,9 +467,6 @@ def gen_worker(Q, physics_device):
                         sub_plen =[torch.tensor(lst) for lst in sub_plen]
                         sub_prompt_ids = curr_prompt_ids[ii:ii+train_batch_size]
                         sub_single_rewards=normed_rewards[ii:ii+train_batch_size]  
-
-
-
                         tensor_list = [torch.tensor(lst) for lst in sub_ans_ids]
                         Qrep = [torch.tensor(lst) for lst in sub_prompt_ids]
                         merged_list = [torch.cat([q, a]) for q, a in zip(Qrep, tensor_list)]
@@ -513,37 +475,28 @@ def gen_worker(Q, physics_device):
                         output_ids = pad_sequence(tensor_list, batch_first=True, padding_value=tokenizer.pad_token_id) 
                         Qrep_ori = prompt_ids.repeat(1, output_ids.shape[0]).view(-1, plen)
                         merged_ids_ori = torch.cat([Qrep_ori, output_ids], dim=1)
-                        
                         data = [json.dumps({"plen": plen}).encode(), tensor_to_bytes(merged_ids), tensor_to_bytes(sub_rewards)]              
-
                         if compute_gen_logps:
                             zz = vllm_gen.generate(prompt_token_ids=merged_ids.tolist(), sampling_params=gen_logps_sp, use_tqdm=False)
                             zz = [ xx.prompt_logprobs[plen:] if xx.prompt_logprobs is not None else [] for xx,plen in zip(zz,sub_plen)]
-                            # zz = [xx.prompt_logprobs[plen:] for xx in zz]
                             if not zz:
                                 print("[!!! SPEICIAL CASE]")
                                 continue
                             gen_logps = torch.tensor([[list(x.values())[0].logprob for x in xx] for xx in zz])
                             data.append(tensor_to_bytes(gen_logps))
-
                         zz_ori = vllm_gen.generate(prompt_token_ids=merged_ids_ori.tolist(), sampling_params=gen_logps_sp, use_tqdm=False)
                         zz_ori = [xx.prompt_logprobs[plen:] for xx in zz_ori]
                         gen_logps_ori = torch.tensor([[list(x.values())[0].logprob for x in xx] for xx in zz_ori])
-
                         data.append(tensor_to_bytes(sub_acc_scores))
                         data.append(tensor_to_bytes(sub_format_scores))
                         data.append(tensor_to_bytes(sub_f1_scores))
                         data.append(tensor_to_bytes(sub_is_aguments))
-                
                         data.append(tensor_to_bytes(merged_ids_ori))
                         data.append(tensor_to_bytes(sub_plen))
                         data.append(tensor_to_bytes(sub_single_rewards))
                         data.append(tensor_to_bytes(gen_logps_ori))
                         data.append(tensor_to_bytes(torch.tensor(j)))
-                        # print("!!data length:", len(data))
                         xdata = make_bytes_list(data)
-                        
-                        # print("!!start to upload")
                         r = requests.post(f"{ref_server}/upload", data=xdata)
                         if r.content == b'queue_full':
                             time.sleep(1) 
@@ -555,8 +508,6 @@ def gen_worker(Q, physics_device):
                                             tensor_to_bytes(curr_rewards)])
                     r = requests.post(f"{ref_server}/upload", data=xdata)
                     if r.content == b'tensor': ref_server_ver = 'tensor'
-
-
 tokenizer = AutoTokenizer.from_pretrained(model_path)
 if __name__ == '__main__':
     import deepspeed
@@ -567,18 +518,14 @@ if __name__ == '__main__':
         Q = mp.Queue()
         p = mp.Process(target=gen_worker, args=(Q, gen_device))
         p.start()
-
     print("!!!!! LOADING MODEL !!!!!")
     model = AutoModelForCausalLM.from_pretrained(model_path, 
             torch_dtype=torch.bfloat16, _attn_implementation="sdpa")
-  # "sdpa"
     engine, optimizer, _, _ = deepspeed.initialize(config=ds_config, model=model, 
                                                 model_parameters=model.parameters())
-
     progress = range(1, all_steps+1)
     if dist.get_rank() == 0: 
         progress = tqdm(progress)
-
     total_output_length = 0
     total_acc_correct = 0
     total_acc_correct_0 = 0
@@ -587,14 +534,12 @@ if __name__ == '__main__':
     total_num = 0
     total_num0 = 1e-6  
     total_num1 = 1e-6  
-
     if torch.distributed.get_rank() == 0:
         if wandb_offline:
             wandb.init(project=wandb_project, 
                         mode="dryrun",
                         name=wandb_name,
-                        config=train_config)
-                        
+                        config=train_config)              
         else:
             wandb.init(project=wandb_project, 
                         name=wandb_name,
@@ -610,7 +555,6 @@ if __name__ == '__main__':
         while batch is None:
             current_time = time.time()
             if current_time - start_time > timeout:
-                
                 dist.barrier()
                 if dist.get_rank() == 0:
                     print('finished training , saving model...')
@@ -622,8 +566,6 @@ if __name__ == '__main__':
                 dist.barrier()
                 should_break = True  
                 break
-
-            # print('wait for batch...') 
             time.sleep(1)
             batch = get_batch()
 
@@ -632,18 +574,13 @@ if __name__ == '__main__':
         if torch.distributed.get_rank() == 0:
             batch_length = batch['gen_logps'].shape[0] * batch['gen_logps'].shape[1]
             total_output_length += batch_length
-            
             acc_scores = batch['acc_scores']
             is_aguments = batch['is_aguments']
-
             total_acc_correct += (acc_scores > 0).sum().item()
             total_format_correct += (batch['format_scores'] > 0).sum().item()
-
             f1_score = batch['f1_scores'].mean().item()
             rewards = batch['rewards'].mean().item()
-
             total_num += batch['inputs'].shape[0]
-         
             mask0 = (is_aguments == 0)
             mask1 = (is_aguments != 0)
             num0 = mask0.sum().item()
@@ -651,7 +588,6 @@ if __name__ == '__main__':
             total_num0 += num0
             total_num1 += num1
             print("get_sample", sample)
-           
             acc_correct_0 = ((acc_scores > 0) & mask0).sum().item()
             acc_correct_1 = ((acc_scores > 0) & mask1).sum().item()
             total_acc_correct_0 += acc_correct_0
@@ -666,13 +602,11 @@ if __name__ == '__main__':
                 "f1_score": float(f1_score),
                 "rewards": float(rewards),
                 "format_correct_ratio": float(total_format_correct) / total_num,
-
             })
         loss = GRPO_step(batch)
         engine.backward(loss)
         # print(f"!!!!rank:{torch.distributed.get_rank()} backward successfully ")
         engine.step()
-
         if dist.get_rank() == 0:
             progress.set_description(f"Loss: {loss.item():.6f}")
             wandb.log({"loss": loss.item()})
@@ -689,7 +623,6 @@ if __name__ == '__main__':
                 update_model_num += 1
                 print('!!The number of update the genmodel:',update_model_num)
             dist.barrier()
-
         if step % save_steps == 0  and step > 0:
             dist.barrier()
             if dist.get_rank() == 0:
@@ -710,4 +643,3 @@ if __name__ == '__main__':
                 engine.module.save_pretrained(save_name, state_dict=state_dict)
                 tokenizer.save_pretrained(save_name)
             dist.barrier()
-        
