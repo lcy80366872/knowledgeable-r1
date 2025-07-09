@@ -602,7 +602,7 @@ if __name__ == '__main__':
             break
         print("!!!waiting for batch...")
         batch = get_batch()
-        timeout = 600  # 
+        timeout = 1200  # 
         start_time = time.time() 
         while batch is None:
             current_time = time.time()
