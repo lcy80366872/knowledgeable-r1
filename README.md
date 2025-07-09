@@ -1,7 +1,7 @@
 <div align="center">
 
 # Knowledgeable-r1: Policy Optimization for Knowledge Exploration in Retrieval-Augmented Generation
-[![Paper](https://img.shields.io/badge/paper-A42C25?style=for-the-badge&logo=arxiv&logoColor=white)](https://arxiv.org/abs/2506.05154) 
+[![Paper](https://img.shields.io/badge/paper-A42C25?style=for-the-badge&logo=arxiv&logoColor=white)](https://arxiv.org/abs/2506.05154)  [![dataset](https://img.shields.io/badge/dataset-A42C25?style=for-the-badge&logo=arxiv&logoColor=white)](https://drive.google.com/file/d/1DZEVJuo6Q65yd0TJBwWF_wT-YNjIawC1/view?usp=drive_link) 
 
 </div>
 
@@ -30,6 +30,8 @@ pip install -r requirements.txt
 At least two GPUs are needed.
 
 ## Usage
+Download all dataset through [this link.](https://drive.google.com/file/d/1DZEVJuo6Q65yd0TJBwWF_wT-YNjIawC1/view?usp=drive_link) 
+Unzip it under the folder of knowledgeable-r1.
 Run the following command:
 ``` bash
 CUDA_VISIBLE_DEVICES=7 python ref_server.py
@@ -38,7 +40,11 @@ This just uses one GPU to collect and run the reference model.
 
 In *config.py*, set the generation device index ​relative to the visible devices​ in next step:
 ``` bash
-gen_device = 0
+"gen_device" = 0
+```
+Set the dataset :
+``` bash
+"dataset_name":'conflictqa',   # 'musique' or 'hotpotqa' or 'conflictqa_mix' or '2wiki
 ```
 Then, open another bash:
 ``` bash
