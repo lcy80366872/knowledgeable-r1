@@ -58,7 +58,7 @@ os.environ["WANDB_API_KEY"] = wandb_key
 # generation_config = GenerationConfig(
 #             max_new_tokens=600,
 #             temperature=0)
-if dataset_name == 'hotpotqa':
+if dataset_name == 'hotpotqa' or '2wiki':
     dataset_process= hotpotqa
     reward_acc =exact_match_score
 elif dataset_name == 'musique':
