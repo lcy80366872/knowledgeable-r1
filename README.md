@@ -1,7 +1,7 @@
 <div align="center">
 
 # Knowledgeable-r1: Policy Optimization for Knowledge Exploration in Retrieval-Augmented Generation
-[![Paper](https://img.shields.io/badge/paper-A42C25?style=for-the-badge&logo=arxiv&logoColor=white)](https://arxiv.org/abs/2506.05154)  [![dataset](https://img.shields.io/badge/dataset-A42C25?style=for-the-badge&logo=arxiv&logoColor=white)](https://drive.google.com/file/d/1DZEVJuo6Q65yd0TJBwWF_wT-YNjIawC1/view?usp=drive_link) 
+[![Paper](https://img.shields.io/badge/paper-A42C25?style=for-the-badge&logo=arxiv&logoColor=white)](https://arxiv.org/abs/2506.05154)  [![dataset](https://img.shields.io/badge/Dataset-yellow?style=for-the-badge&logo=huggingface&logoColor=000)](https://drive.google.com/file/d/1DZEVJuo6Q65yd0TJBwWF_wT-YNjIawC1/view?usp=drive_link) 
 
 </div>
 
@@ -64,4 +64,7 @@ If you find our works useful for your research, please consider citing:
       url={https://arxiv.org/abs/2506.05154}, 
 }
 ```
-
+## Acknowledgement
+* The training codes are built on [simple_GRPO](https://github.com/lsdefine/simple_GRPO), and the evaluation suite employs [vLLM](https://github.com/vllm-project/vllm) for acceleration.
+* The base models are from [Qwen2.5-7B-Instruct](https://huggingface.co/Qwen/Qwen2.5-7B-Instruct) and [Qwen2.5-3B-Instruct](https://huggingface.co/Qwen/Qwen2.5-3B-Instruct).
+* The original training datasets are from [ConFiQA](https://github.com/byronBBL/Context-DPO) and [HotpotQA](http://curtis.ml.cmu.edu/datasets/hotpot/).
