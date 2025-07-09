@@ -24,7 +24,7 @@ from datetime import datetime
 os.environ['TOKENIZERS_PARALLELISM'] = 'true'
 os.environ["NCCL_P2P_DISABLE"]="1"
 
-NUMS =500
+
 wandb_name = train_config['wandb_name']
 wandb_project = train_config['wandb_project']
 wandb_key = train_config['wandb_key']
@@ -245,7 +245,7 @@ def gen_worker(Q, physics_device):
 
     
     data_path = train_config['data_path']   
-    QAs =  dataset_process(data_path,search_results)[:NUMS]
+    QAs =  dataset_process(data_path,search_results)
     print("QAs", len(QAs))
     system_prompt=[]
     for prompt_path in prompt_paths:
@@ -707,14 +707,4 @@ if __name__ == '__main__':
                 engine.module.save_pretrained(save_name, state_dict=state_dict)
                 tokenizer.save_pretrained(save_name)
             dist.barrier()
-        if sample>= NUMS-10 and step > 0:
-            dist.barrier()
-            if dist.get_rank() == 0:
-                print('saving model')
-                save_name = f"{save_path}/final_model"
-                state_dict = engine.module.state_dict()
-                state_dict = type(state_dict)({k: v.cpu() for k, v in state_dict.items()})
-                engine.module.save_pretrained(save_name, state_dict=state_dict)
-                tokenizer.save_pretrained(save_name)
-            dist.barrier()
-            break
+        
