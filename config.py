@@ -1,18 +1,18 @@
 train_config = {
     "all_steps": 1600,
     "save_steps": 100,
-    "wandb_name":"3b-rag-MR",
-    "wandb_project":"EMNLP25-conflict",
+    "wandb_name":"ConFiQA-QA",
+    "wandb_project":"knowledgeable-r1",
     "save_path":  "save_model",
     "record_path": "record.json",   #"record the generated data during the training process"
     "gen_data_path":"gen_data.json", # "record all the generated data during the training process"
     "gen_device":0,  
-    "data_path":"data/conflict_qa/ConFiQA-MR-train.json",   #"data/hotpot/hotpot_train_v1.1.json" data/MuSiQue/musique_ans_v1.0_train.jsonl
-    "dataset_name":'conflictqa',   # 'musique' or 'hotpotqa'
+    "data_path":"data/conflict_qa/ConFiQA-QA-train.json",   #"data/hotpot/hotpot_train_v1.1.json" data/MuSiQue/musique_ans_v1.0_train.jsonl
+    "dataset_name":'conflictqa',    # 'musique' or 'hotpotqa' or 'conflictqa_mix' or '2wiki'
     "beta": 0.04,
     "token_level_loss": True,
     "model_path": "model/Qwen2.5-3B-Instruct" ,
-    "Q_batch_size": 1,   # number of questiozns in generate data vllm一次采样多少个问题，这应该不影响模型的性能，只是影响生成的速度
+    "Q_batch_size": 1,   # number of questiozns in generate data vllm
     "num_pre_Q": 16,   # number of per question generating samples 
     "train_batch_size":1,
     "random_remove": 10,
@@ -49,7 +49,7 @@ ds_config = {
     "bf16": {"enabled": True},
     "activation_checkpointing": {
          "partition_activations": True,
-    #     "cpu_checkpointing": True,  # 新增：将检查点数据放在CPU
+    #     "cpu_checkpointing": True,  
          "contiguous_memory_optimization": True
      },
     "zero_optimization": {
@@ -62,11 +62,7 @@ ds_config = {
         "contiguous_gradients": True,
         "stage3_gather_16bit_weights_on_model_save": True,
         "offload_optimizer": {"device": "cpu"}
-        # "offload_optimizer": {
-        #     "device": "cpu",
-        #     "pin_memory": True,  # 启用分页加载优化
-        #     "buffer_count": 4    # 增加CPU缓冲区数量
-        # }
+        
         
     }
 }
